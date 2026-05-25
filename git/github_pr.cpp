@@ -111,6 +111,20 @@ namespace GitHubPR {
         return "main";
     }
 
+    static bool branch_has_commits_ahead(const std::string& branch_name, const std::string& base_branch) {
+        std::string cmd = "git rev-list --left-right --count " + base_branch + "..." + branch_name + " 2>/dev/null";
+        std::string output = trim(run_command_capture(cmd));
+        if (output.empty()) {
+            return false;
+        }
+        size_t space_pos = output.find(' ');
+        if (space_pos == std::string::npos) {
+            return false;
+        }
+        std::string ahead_str = output.substr(space_pos + 1);
+        return std::stol(ahead_str) > 0;
+    }
+
     static bool checkout_branch(const std::string& branch_name, std::string& reason) {
         std::ostringstream cmd;
         cmd << "git checkout " << branch_name << " 2>/dev/null";
