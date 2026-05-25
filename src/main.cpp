@@ -12,7 +12,9 @@
 #include "../repository/cpp_scanner.h"
 #include "../agents/planner_agent.h"
 #include "../git/branch_manager.h"
+#include "../git/commit_manager.h"
 #include "../git/github_pr.h"
+#include "../output/markdown_writer.h"
 #include "../utils/logger.h"
 #include "../utils/env_loader.h"
 
@@ -41,6 +43,27 @@ int main(int argc, char** argv) {
     bool branch_ok = Git::create_branch(branch);
     if (!branch_ok) {
         Logger::error("Failed to create git branch: " + branch);
+        return 1;
+    }
+
+    Logger::info("[WRITE] writing plan artifact...");
+    std::string plan_path = "plans/" + short_name + ".md";
+    bool wrote = Output::write_markdown_file(plan_path, plan_markdown);
+    if (!wrote) {
+        Logger::error("Failed to write plan artifact to " + plan_path);
+        return 1;
+    }
+
+    Logger::info("[COMMIT] committing plan artifact...");
+    bool staged = Git::stage_file(plan_path);
+    if (!staged) {
+        Logger::error("Failed to stage plan artifact " + plan_path);
+        return 1;
+    }
+    std::string commit_message = "Add planning artifact for task: " + task;
+    bool committed = Git::commit_staged(commit_message);
+    if (!committed) {
+        Logger::error("Failed to commit plan artifact");
         return 1;
     }
 

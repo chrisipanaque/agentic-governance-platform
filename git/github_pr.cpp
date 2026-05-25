@@ -114,15 +114,47 @@ namespace GitHubPR {
     static bool branch_has_commits_ahead(const std::string& branch_name, const std::string& base_branch) {
         std::string cmd = "git rev-list --left-right --count " + base_branch + "..." + branch_name + " 2>/dev/null";
         std::string output = trim(run_command_capture(cmd));
+        std::cout << "[PR] git rev-list output=" << output << std::endl;
         if (output.empty()) {
             return false;
         }
-        size_t space_pos = output.find(' ');
-        if (space_pos == std::string::npos) {
+
+        std::istringstream iss(output);
+        long behind = 0;
+        long ahead = 0;
+        if (!(iss >> behind >> ahead)) {
+            std::cerr << "[PR] could not parse rev-list counts from: " << output << std::endl;
             return false;
         }
-        std::string ahead_str = output.substr(space_pos + 1);
-        return std::stol(ahead_str) > 0;
+        return ahead > 0;
+    }
+
+    static bool branch_has_commits_ahead_on_remote(const std::string& branch_name, const std::string& base_branch, std::string& reason) {
+        std::cout << "[PR] fetching remote refs for validation..." << std::endl;
+        run_command_capture("git fetch origin " + base_branch + " " + branch_name + " 2>/dev/null");
+
+        std::string remote_branch = "origin/" + branch_name;
+        std::string remote_base = "origin/" + base_branch;
+        std::string cmd = "git rev-list --left-right --count " + remote_base + "..." + remote_branch + " 2>/dev/null";
+        std::string output = trim(run_command_capture(cmd));
+        std::cout << "[PR] git rev-list remote output=" << output << std::endl;
+        if (output.empty()) {
+            reason = "remote rev-list output is empty for " + remote_base + " and " + remote_branch;
+            return false;
+        }
+
+        std::istringstream iss(output);
+        long behind = 0;
+        long ahead = 0;
+        if (!(iss >> behind >> ahead)) {
+            reason = "could not parse remote rev-list counts from: " + output;
+            return false;
+        }
+        if (ahead <= 0) {
+            reason = "remote branch '" + branch_name + "' has no commits ahead of '" + base_branch + "' on origin";
+            return false;
+        }
+        return true;
     }
 
     static bool checkout_branch(const std::string& branch_name, std::string& reason) {
@@ -174,8 +206,14 @@ namespace GitHubPR {
                 return false;
             }
         }
+
+        std::string remote_reason;
+        if (!branch_has_commits_ahead_on_remote(branch_name, base_branch, remote_reason)) {
+            error = remote_reason;
+            return false;
+        }
         if (!branch_has_commits_ahead(branch_name, base_branch)) {
-            error = "branch '" + branch_name + "' has no commits ahead of base branch '" + base_branch + "'";
+            error = "local branch '" + branch_name + "' has no commits ahead of base branch '" + base_branch + "'";
             return false;
         }
         return true;
