@@ -7,6 +7,7 @@
 #include "planner_agent.h"
 #include "../llm/github_models_client.h"
 #include "../output/markdown_generator.h"
+#include "../utils/logger.h"
 #include <sstream>
 #include <algorithm>
 #include <cctype>
@@ -44,6 +45,12 @@ namespace Planner {
         req.temperature = 0.0; // deterministic planning
 
         LLM::Response resp = client.complete(req);
+        if (resp.status_code < 200 || resp.status_code >= 300) {
+            Logger::error("[PLAN] LLM API failed with status " + std::to_string(resp.status_code));
+            Logger::error("[PLAN] Raw response: " + resp.raw);
+            return std::string();
+        }
+
         // Sanitize and enforce markdown-only artifact
         return Output::sanitize_markdown(resp.text);
     }

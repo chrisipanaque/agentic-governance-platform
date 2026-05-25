@@ -7,6 +7,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <string>
+#include <array>
+#include <cstdio>
 
 #include "../cli/cli_parser.h"
 #include "../repository/cpp_scanner.h"
@@ -36,6 +38,10 @@ int main(int argc, char** argv) {
 
     Logger::info("[PLAN] generating implementation plan via LLM...");
     std::string plan_markdown = Planner::plan_from_model(prompt);
+    if (plan_markdown.empty()) {
+        Logger::error("[PLAN] generated plan is empty or invalid. Aborting.");
+        return 1;
+    }
 
     Logger::info("[GIT] creating branch...");
     std::string short_name = Planner::sanitize_task_for_branch(task);
@@ -64,6 +70,31 @@ int main(int argc, char** argv) {
     bool committed = Git::commit_staged(commit_message);
     if (!committed) {
         Logger::error("Failed to commit plan artifact");
+        return 1;
+    }
+
+    auto run_cmd = [&](const std::string& cmd) {
+        std::array<char, 128> buffer;
+        std::string result;
+        FILE* pipe = popen(cmd.c_str(), "r");
+        if (!pipe) return result;
+        while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
+            result += buffer.data();
+        }
+        pclose(pipe);
+        while (!result.empty() && (result.back() == '\n' || result.back() == '\r')) result.pop_back();
+        return result;
+    };
+
+    std::string current_branch = run_cmd("git rev-parse --abbrev-ref HEAD 2>/dev/null");
+    std::string commit_sha = run_cmd("git rev-parse HEAD 2>/dev/null");
+    Logger::info("[GIT] current branch: " + current_branch);
+    Logger::info("[GIT] commit SHA: " + commit_sha);
+
+    Logger::info("[GIT] pushing branch...");
+    bool pushed = Git::push_branch(branch);
+    if (!pushed) {
+        Logger::error("Failed to push branch " + branch + " to origin");
         return 1;
     }
 

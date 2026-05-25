@@ -20,4 +20,15 @@ namespace Git {
         }
         return true;
     }
+
+    bool push_branch(const std::string& branch_name) {
+        std::cout << "[GIT] pushing branch to origin: " << branch_name << std::endl;
+        std::string cmd = "git push -u origin " + branch_name;
+        int rc = std::system(cmd.c_str());
+        if (rc != 0) {
+            std::cerr << "[GIT] git push failed with code " << rc << std::endl;
+            return false;
+        }
+        return true;
+    }
 }

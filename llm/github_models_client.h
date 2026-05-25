@@ -8,6 +8,7 @@
 namespace LLM {
     struct Request {
         std::string prompt;
+        std::string model = "azureml";
         int max_tokens = 512;
         double temperature = 0.0;
     };

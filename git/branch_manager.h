@@ -8,4 +8,7 @@
 namespace Git {
     // Create a branch and check it out. Returns true on success.
     bool create_branch(const std::string& branch_name);
+
+    // Push the current branch to origin and set upstream tracking.
+    bool push_branch(const std::string& branch_name);
 }

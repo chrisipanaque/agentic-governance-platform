@@ -135,7 +135,7 @@ namespace GitHubPR {
 
         std::string remote_branch = "origin/" + branch_name;
         std::string remote_base = "origin/" + base_branch;
-        std::string cmd = "git rev-list --left-right --count " + remote_base + "..." + remote_branch + " 2>/dev/null";
+        std::string cmd = "git rev-list --count " + remote_base + ".." + remote_branch + " 2>/dev/null";
         std::string output = trim(run_command_capture(cmd));
         std::cout << "[PR] git rev-list remote output=" << output << std::endl;
         if (output.empty()) {
@@ -143,11 +143,11 @@ namespace GitHubPR {
             return false;
         }
 
-        std::istringstream iss(output);
-        long behind = 0;
         long ahead = 0;
-        if (!(iss >> behind >> ahead)) {
-            reason = "could not parse remote rev-list counts from: " + output;
+        try {
+            ahead = std::stol(output);
+        } catch (...) {
+            reason = "could not parse remote rev-list count from: " + output;
             return false;
         }
         if (ahead <= 0) {
@@ -198,13 +198,8 @@ namespace GitHubPR {
             return false;
         }
         if (!branch_exists_remotely(branch_name)) {
-            if (!push_branch_to_origin(branch_name, error)) {
-                return false;
-            }
-            if (!branch_exists_remotely(branch_name)) {
-                error = "branch '" + branch_name + "' still does not exist on origin after push";
-                return false;
-            }
+            error = "remote branch '" + branch_name + "' does not exist on origin";
+            return false;
         }
 
         std::string remote_reason;
@@ -262,13 +257,18 @@ namespace GitHubPR {
         }
 
         std::string base_branch = get_default_base_branch();
+        std::string current_branch = trim(run_command_capture("git rev-parse --abbrev-ref HEAD 2>/dev/null"));
+        std::string commit_sha = trim(run_command_capture("git rev-parse HEAD 2>/dev/null"));
+        std::cout << "[PR] current branch=" << current_branch << std::endl;
+        std::cout << "[PR] current commit=" << commit_sha << std::endl;
         std::cout << "[PR] remote origin=" << remote_url << " owner/repo=" << owner_repo << std::endl;
         std::cout << "[PR] validating branch '" << branch_name << "' against base '" << base_branch << "'" << std::endl;
+
+        run_command_capture("git fetch origin " + base_branch + " " + branch_name + " 2>/dev/null");
 
         std::string validate_error;
         if (!validatePullRequestBranches(branch_name, base_branch, validate_error)) {
             std::cerr << "[PR] validation failed: " << validate_error << std::endl;
-            delete_local_branch(branch_name, base_branch);
             return false;
         }
 
@@ -316,7 +316,7 @@ namespace GitHubPR {
         bool success = send_request(response_body, response_code);
         if (!success) {
             std::cerr << "[PR] failed to send request" << std::endl;
-            delete_local_branch(branch_name, base_branch);
+            std::cerr << "[PR] branch '" << branch_name << "' is preserved for debugging." << std::endl;
             return false;
         }
 
@@ -332,13 +332,13 @@ namespace GitHubPR {
             std::string retry_error;
             if (!validatePullRequestBranches(branch_name, base_branch, retry_error)) {
                 std::cerr << "[PR] retry validation failed: " << retry_error << std::endl;
-                delete_local_branch(branch_name, base_branch);
+                std::cerr << "[PR] branch '" << branch_name << "' is preserved for debugging." << std::endl;
                 return false;
             }
             response_body.clear();
             if (!send_request(response_body, response_code)) {
                 std::cerr << "[PR] retry failed to send request" << std::endl;
-                delete_local_branch(branch_name, base_branch);
+                std::cerr << "[PR] branch '" << branch_name << "' is preserved for debugging." << std::endl;
                 return false;
             }
             if (response_code >= 200 && response_code < 300) {
@@ -348,7 +348,7 @@ namespace GitHubPR {
             std::cerr << "[PR] retry returned status " << response_code << ", body: " << response_body << std::endl;
         }
 
-        delete_local_branch(branch_name, base_branch);
+        std::cerr << "[PR] branch '" << branch_name << "' is preserved for debugging." << std::endl;
         return false;
     }
 }
