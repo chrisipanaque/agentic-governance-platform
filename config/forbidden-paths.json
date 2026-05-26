@@ -11,10 +11,6 @@
     {
       "path": "/var/log/secure",
       "reason": "System security logs - restricted access"
-    },
-    {
-      "path": "/var/log/secrets",
-      "reason": "secrets logs - restricted access"
     }
   ]
 }
