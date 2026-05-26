@@ -1,9 +1,12 @@
 name: ai-governance-platform CI
 
 on:
-  push:
+  push: 
+    branches:
+      - main
   pull_request:
-  workflow_dispatch:
+    branches:
+      - main
 
 jobs:
   build:
