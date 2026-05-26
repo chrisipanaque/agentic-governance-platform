@@ -16,6 +16,7 @@ FetchContent_MakeAvailable(nlohmann_json)
 add_executable(ai-control-plane 
     src/main.cpp
     src/config_loader.cpp
+    src/diff_scanner.cpp
 )
 
 target_include_directories(ai-control-plane PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

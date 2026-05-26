@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string_view>
 #include "config_loader.hpp"
+#include "diff_scanner.hpp"
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -25,6 +26,18 @@ int main(int argc, char* argv[]) {
             for (const auto& policy : paths) {
                 std::cout << "  - " << policy.path << " (" << policy.reason << ")\n";
             }
+            return 0;
+        } catch (const std::exception& e) {
+            std::cerr << "Error: " << e.what() << '\n';
+            return 1;
+        }
+    }
+
+    if (command == "scan-diff") {
+        try {
+            DiffScanner scanner;
+            auto stats = scanner.scan();
+            scanner.print_stats(stats);
             return 0;
         } catch (const std::exception& e) {
             std::cerr << "Error: " << e.what() << '\n';

@@ -25,3 +25,16 @@ jobs:
 
       - name: Test show-policies
         run: ./build/ai-control-plane show-policies
+
+      - name: Test scan-diff
+        run: |
+          cd build
+          git init
+          git config user.email "chris.ipanaque@gmail.com"
+          git config user.name "chrisipanaque"
+          echo "initial content" > test.txt
+          git add test.txt
+          git commit -m "initial"
+          echo "modified content" > test.txt
+          echo "new file" > newfile.txt
+          ../build/ai-control-plane scan-diff
