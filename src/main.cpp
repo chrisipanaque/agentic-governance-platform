@@ -3,6 +3,7 @@
 #include "config_loader.hpp"
 #include "diff_scanner.hpp"
 #include "path_validator.hpp"
+#include "risk_engine.hpp"
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -60,6 +61,23 @@ int main(int argc, char* argv[]) {
             validator.print_validation_result(validation);
 
             return validation.is_valid ? 0 : 1;
+        } catch (const std::exception& e) {
+            std::cerr << "Error: " << e.what() << '\n';
+            return 1;
+        }
+    }
+
+    if (command == "risk-score") {
+        try {
+            DiffScanner diff_scanner;
+            auto diff_stats = diff_scanner.scan();
+
+            RiskEngine engine("config/risk-rules.json");
+            engine.load_rules();
+            auto risk = engine.calculate_score(diff_stats);
+            engine.print_score(risk);
+
+            return (risk.score >= 75.0) ? 1 : 0;
         } catch (const std::exception& e) {
             std::cerr << "Error: " << e.what() << '\n';
             return 1;

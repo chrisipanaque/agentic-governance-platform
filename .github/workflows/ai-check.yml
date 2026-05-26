@@ -54,3 +54,6 @@ jobs:
           cd ..
           # This should fail validation and exit with code 1
           ! ./build/ai-control-plane validate-policy
+
+      - name: Test risk-score
+        run: ./build/ai-control-plane risk-score
