@@ -2,6 +2,20 @@
 
 C++20 CLI tool that scans git diffs, validates paths against policies, and computes risk scores for PR review safety gating.
 
+## Quick Start
+
+Run this inside your repo to set up the governance tool as a git submodule, build it, and create a CI workflow:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/chrisipanaque/agentic-workflow-governance-tools/main/setup.sh | bash
+```
+
+After setup, test it locally:
+
+```sh
+./_gov/build/agentic-workflow-governance-tools validate-policy
+```
+
 ## Build & Run
 
 ```sh
@@ -28,7 +42,7 @@ All commands write JSON audit reports to `output/reports/audit_*.json` and JSONL
 
 ## Architecture
 
-- `src/main.cpp` — CLI dispatcher (5 commands, string comparison)
+- `src/main.cpp` — CLI dispatcher (7 commands, string comparison)
 - Config files in `config/`: `forbidden-paths.json` (path + reason), `risk-rules.json` (pattern + weight)
 - `src/diff_scanner.cpp` — parses `git diff --unified=0` output, not `git diff --cached` (unstaged+staged, not just staged)
 - `src/path_validator.cpp` — glob matching (`*`/`?`) against forbidden paths
