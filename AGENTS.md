@@ -59,7 +59,7 @@ To test locally, ensure you have staged/unstaged changes in a git repo, then run
 ## Notable
 
 - No linter, formatter, or typechecker config in the repo
-- `build/` is gitignored; `output/` is not
+- `build/`, `output/`, and `var/` are gitignored
 - Exit code 1 also means "unknown command"
 - `risk-score` returns 1 when score ≥ 75 (CRITICAL)
 - `validate-policy` returns 1 when violations found
