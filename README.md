@@ -181,7 +181,7 @@ Five JSON config files and one CODEOWNERS file govern all system behavior. No re
 The governance platform follows Unix convention: 0 = success, non-zero = action required. CI pipelines and agent scripts use simple `if`/`else` on exit codes:
 
 ```sh
-./build/ai-governance-platform check-approval
+./build/agentic-workflow-governance-tools check-approval
 if [ $? -eq 0 ]; then
   echo "Auto-approved — safe to merge"
 else
@@ -206,7 +206,7 @@ The compiled binary (`ai-governance-platform`) and its config files are the only
 ## Quick Reference
 
 ```
-CLI:  ./ai-governance-platform <command>
+CLI:  ./agentic-workflow-governance-tools <command>
 C++:  C++20, CMake 3.20+
 Dep:  nlohmann/json v3.11.2 (FetchContent, no package manager)
 LOC:  1,852 lines across 11 source + 10 header files

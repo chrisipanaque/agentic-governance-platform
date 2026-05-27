@@ -1,4 +1,4 @@
-name: ai-governance-platform CI
+name: agentic-workflow-governance-tools CI
 
 on:
   push: 
@@ -25,10 +25,10 @@ jobs:
         run: cmake --build build
 
       - name: Test healthcheck
-        run: ./build/ai-governance-platform healthcheck
+        run: ./build/agentic-workflow-governance-tools healthcheck
 
       - name: Test show-policies
-        run: timeout 30 ./build/ai-governance-platform show-policies
+        run: timeout 30 ./build/agentic-workflow-governance-tools show-policies
 
       - name: Test scan-diff
         run: |
@@ -41,23 +41,23 @@ jobs:
           git commit -m "initial"
           echo "modified content" > test.txt
           echo "new file" > newfile.txt
-          ../build/ai-governance-platform scan-diff
+          ../build/agentic-workflow-governance-tools scan-diff
           cd ..
 
       - name: Test validate-policy (pass case)
-        run: ./build/ai-governance-platform validate-policy
+        run: ./build/agentic-workflow-governance-tools validate-policy
 
       - name: Test validate-policy (fail case - should detect violations)
-        run: ./build/ai-governance-platform validate-policy
+        run: ./build/agentic-workflow-governance-tools validate-policy
 
       - name: Test risk-score
-        run: ./build/ai-governance-platform risk-score
+        run: ./build/agentic-workflow-governance-tools risk-score
 
       - name: Test check-approval
-        run: timeout 30 ./build/ai-governance-platform check-approval
+        run: timeout 30 ./build/agentic-workflow-governance-tools check-approval
 
       - name: Test validate-architecture
-        run: timeout 30 ./build/ai-governance-platform validate-architecture
+        run: timeout 30 ./build/agentic-workflow-governance-tools validate-architecture
 
       - name: Upload logs and reports
         if: always()

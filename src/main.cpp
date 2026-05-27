@@ -16,7 +16,7 @@
 int main(int argc, char* argv[]) {
     std::cerr << "TRACE: main entered" << std::endl;
     if (argc < 2) {
-        std::cerr << "Usage: ai-governance-platform <command>\n";
+        std::cerr << "Usage: agentic-workflow-governance-tools <command>\n";
         return 1;
     }
 
